@@ -1,11 +1,14 @@
 import os
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory,request
 
 app = Flask(__name__)
 PDF_FOLDER = os.path.join('static')
 
-@app.route('/')
+@app.route('/',methods=['GET', 'POST'])
 def index():
+    if request.method=='POST':
+        file = request.files['file']
+        file.save(f"static/{file.filename}")
 
     # List all PDFs in the static/ directory
     pdf_files = [f for f in os.listdir(PDF_FOLDER) if f.endswith('.pdf')]
@@ -22,4 +25,4 @@ def serve_pdf(filename):
     return send_from_directory(PDF_FOLDER, filename)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0',port=4900,debug=True)
