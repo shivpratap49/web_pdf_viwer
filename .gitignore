@@ -1,0 +1,12 @@
+# Ignore all uploaded PDFs
+static/*.pdf
+
+# Ignore generated thumbnails
+static/thumbs/*
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore system files (optional)
+.DS_Store
