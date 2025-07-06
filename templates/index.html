@@ -1,25 +1,118 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload Books</title>
+    <title>Upload Your Books</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 50px; background: #f4f4f4; }
-        .upload-box { background: white; padding: 20px; display: inline-block; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .upload-box h2 { margin-bottom: 20px; }
-        .flash-message { color: red; margin: 15px; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(270deg, #6e8efb, #a777e3, #70d9b8, #ff9a9e);
+            background-size: 800% 800%;
+            animation: gradientAnimation 15s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .upload-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 350px;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .upload-box h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #6e8efb;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #576edc;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #eee;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 20px;
+            width: 0%;
+            background: #6e8efb;
+            border-radius: 6px;
+            transition: width 0.4s ease;
+        }
+
+        .library-link {
+            display: block;
+            margin-top: 20px;
+            color: #6e8efb;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .library-link:hover {
+            text-decoration: underline;
+        }
+
+        .flash-message {
+            color: red;
+            margin-top: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
     </style>
 </head>
 <body>
 
 <div class="upload-box">
     <h2>Upload Your Books (PDF Only)</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="files" multiple>
-        <br><br>
+    <form id="uploadForm" method="POST" enctype="multipart/form-data">
+        <input type="file" name="files" id="fileInput" multiple required>
+        <br>
         <button type="submit">Upload</button>
     </form>
-    <br>
-    <a href="{{ url_for('viewer') }}">Go to Library</a>
+
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <a href="{{ url_for('viewer') }}" class="library-link">📚 Go to Library</a>
 
     {% with messages = get_flashed_messages() %}
       {% if messages %}
@@ -31,6 +124,44 @@
       {% endif %}
     {% endwith %}
 </div>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const files = document.getElementById('fileInput').files;
+    if (files.length === 0) {
+        alert("Please select at least one PDF file.");
+        return;
+    }
+
+    const formData = new FormData();
+    for (let file of files) {
+        formData.append('files', file);
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '', true);
+
+    xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+            const percent = (e.loaded / e.total) * 100;
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+    };
+
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            location.reload();
+        } else {
+            alert('Upload failed!');
+        }
+    };
+
+    xhr.send(formData);
+});
+</script>
 
 </body>
 </html>
