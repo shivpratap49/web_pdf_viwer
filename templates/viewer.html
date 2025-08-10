@@ -4,63 +4,156 @@
     <meta charset="UTF-8">
     <title>Books Library</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 20px; }
-        h1 { text-align: center; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(120deg, #89f7fe, #66a6ff);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+        .nav a:hover { background: rgba(255,255,255,0.4); }
+
+        /* Search bar */
+        .search-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .search-box {
+            padding: 12px 15px;
+            width: 300px;
+            border-radius: 25px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s ease, transform 0.2s ease;
+        }
+        .search-box:focus {
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            transform: scale(1.02);
+        }
+
+        /* Book grid */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 20px;
-            padding: 20px;
+            padding: 10px;
         }
         .book-card {
             background: #fff;
-            border-radius: 10px;
+            border-radius: 15px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             overflow: hidden;
             text-align: center;
             padding: 10px;
-            transition: transform 0.2s;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
         }
-        .book-card:hover { transform: scale(1.05); }
+        .book-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
         .book-cover {
             width: 100%;
             height: 220px;
             object-fit: cover;
             margin-bottom: 10px;
+            border-radius: 8px;
+            transition: transform 0.4s ease;
         }
-        .filename { font-weight: bold; margin: 10px 0; word-break: break-word; }
+        .book-card:hover .book-cover {
+            transform: scale(1.05);
+        }
+        .filename {
+            font-weight: bold;
+            margin: 10px 0;
+            word-break: break-word;
+            font-size: 14px;
+            color: #444;
+        }
         .actions a {
             display: inline-block;
             margin: 5px;
-            padding: 5px 10px;
-            background: #3498db;
+            padding: 6px 12px;
+            background: linear-gradient(45deg, #3498db, #2ecc71);
             color: #fff;
-            border-radius: 5px;
+            border-radius: 25px;
             text-decoration: none;
+            font-size: 13px;
+            transition: background 0.3s ease;
         }
-        .actions a:hover { background: #2980b9; }
-        .nav { text-align: center; margin-bottom: 20px; }
+        .actions a:hover {
+            background: linear-gradient(45deg, #2ecc71, #3498db);
+        }
+
+        /* Fade-in animation */
+        .book-card {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 <body>
 
-<h1>Books Library</h1>
+<h1>📚 Books Library</h1>
 <div class="nav">
     <a href="{{ url_for('index') }}">Upload More Books</a>
 </div>
 
-<div class="grid-container">
+<div class="search-container">
+    <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search books...">
+</div>
+
+<div class="grid-container" id="booksGrid">
     {% for pdf in pdfs %}
     <div class="book-card">
         <img src="{{ url_for('static', filename=thumbs[pdf]) }}" alt="Cover" class="book-cover">
         <div class="filename">{{ pdf }}</div>
         <div class="actions">
             <a href="{{ url_for('serve_pdf', filename=pdf) }}" target="_blank">View</a>
-
         </div>
     </div>
     {% endfor %}
 </div>
+
+<script>
+    document.getElementById('searchInput').addEventListener('input', function () {
+        let filter = this.value.toLowerCase();
+        let books = document.querySelectorAll('.book-card');
+
+        books.forEach(function (book) {
+            let title = book.querySelector('.filename').textContent.toLowerCase();
+            if (title.includes(filter)) {
+                book.style.display = "";
+            } else {
+                book.style.display = "none";
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
