@@ -10,3 +10,12 @@ __pycache__/
 
 # Ignore system files (optional)
 .DS_Store
+
+.gcloudignore
+
+*.txt
+
+*.out
+
+*.yaml
+*.json

@@ -130,10 +130,10 @@
 <div class="grid-container" id="booksGrid">
     {% for pdf in pdfs %}
     <div class="book-card">
-        <img src="{{ url_for('static', filename=thumbs[pdf]) }}" alt="Cover" class="book-cover">
+        <img src="{{thumbs[pdf]['thumb_url']}}" alt="Cover" class="book-cover">
         <div class="filename">{{ pdf }}</div>
         <div class="actions">
-            <a href="{{ url_for('serve_pdf', filename=pdf) }}" target="_blank">View</a>
+            <a href="{{thumbs[pdf]['pdf_url']}}" target="_blank">View</a>
         </div>
     </div>
     {% endfor %}
