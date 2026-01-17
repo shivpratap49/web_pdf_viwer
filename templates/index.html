@@ -102,8 +102,8 @@
 
 <div class="upload-box">
     <h2>Upload Your Books (PDF Only)</h2>
-    <form id="uploadForm" method="POST" enctype="multipart/form-data">
-        <input type="file" name="files" id="fileInput" multiple required>
+    <form id="uploadForm" >
+        <input type="file" name="files" id="fileInput" multiple required accept=".pdf">
         <br>
         <button type="submit">Upload</button>
     </form>
@@ -126,7 +126,7 @@
 </div>
 
 <script>
-document.getElementById('uploadForm').addEventListener('submit', function(e) {
+document.getElementById('uploadForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const files = document.getElementById('fileInput').files;
@@ -135,33 +135,47 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
         return;
     }
 
-    const formData = new FormData();
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    progressContainer.style.display = 'block';
+
     for (let file of files) {
-        formData.append('files', file);
+        if (!file.name.toLowerCase().endsWith(".pdf")) {
+            alert("Only PDF files are allowed");
+            continue;
+        }
+        progressBar.style.width = "0%"
+
+        // 1️⃣ Ask Flask for signed upload URL
+        const res = await fetch("/sign-upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filename: file.name })
+        });
+
+        const { upload_url } = await res.json();
+
+        // 2️⃣ Upload directly to GCS
+        await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open("PUT", upload_url, true);
+            xhr.setRequestHeader("Content-Type", "application/pdf");
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    progressBar.style.width = percent + "%";
+                }
+            };
+
+            xhr.onload = () => xhr.status === 200 ? resolve() : reject();
+            xhr.onerror = reject;
+            xhr.send(file);
+        });
     }
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', '', true);
-
-    xhr.upload.onprogress = function(e) {
-        if (e.lengthComputable) {
-            const percent = (e.loaded / e.total) * 100;
-            document.getElementById('progressContainer').style.display = 'block';
-            document.getElementById('progressBar').style.width = percent + '%';
-        }
-    };
-
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            location.reload();
-        } else {
-            alert('Upload failed!');
-        }
-    };
-
-    xhr.send(formData);
+    location.reload();
 });
 </script>
-
 </body>
 </html>

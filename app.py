@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, flash, send_from_directory, url_for,make_response
+from flask import Flask, render_template, request, redirect, flash, send_from_directory, url_for,jsonify,make_response
 from werkzeug.utils import secure_filename
 from pdf2image import convert_from_path
 from google.cloud import storage  
@@ -39,9 +39,10 @@ def pdf_list():
     return list_pdf
 
 
+
 def thumb_list():
     now=time.time()
-    if _thumb_cache and now - _thumb_cache["ts"] < _THUMB_CACHE_TTL:
+    if "ts" in _thumb_cache and now - _thumb_cache["ts"] < _THUMB_CACHE_TTL:
         return _thumb_cache["data"]
     bucket=client.bucket('app_thumbnails')
     blobs=blobs = client.list_blobs(bucket)
@@ -60,9 +61,33 @@ def file_upload_gcs(file_name,file):
     # blob.cache_control = "private, max-age=360000"
     blob=bucket.blob(file_name)
     blob.upload_from_file(file,content_type='application/pdf')
-    _thumb_cache.clear()
+    
     
 
+
+@app.route("/sign-upload", methods=["POST"])
+def sign_upload():
+    data = request.get_json()
+    
+    original_name = secure_filename(data["filename"])
+
+    unique_name = f"{original_name}"
+
+    bucket = client.bucket("online_library_app")
+    blob = bucket.blob(unique_name)
+
+    upload_url = blob.generate_signed_url(
+        version="v4",
+        expiration=datetime.timedelta(minutes=15),
+        method="PUT",
+        content_type="application/pdf"
+    )
+    
+    _thumb_cache.clear()
+    return jsonify({
+        "upload_url": upload_url,
+        "filename": unique_name
+    })
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
