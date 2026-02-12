@@ -31,7 +31,7 @@ def pdf_list():
         sm_dict=dict()
         sm_dict['pdf_url']=blob.generate_signed_url(
             version="v4",
-            expiration=datetime.timedelta(hours=1),
+            expiration=datetime.timedelta(days=1),
             method="GET",
          response_disposition='inline'
         )
@@ -58,8 +58,8 @@ def thumb_list():
 
 def file_upload_gcs(file_name,file):
     bucket=client.bucket('online_library_app')
-    # blob.cache_control = "private, max-age=360000"
     blob=bucket.blob(file_name)
+    blob.cache_control = "private, max-age=86400"
     blob.upload_from_file(file,content_type='application/pdf')
     
     
